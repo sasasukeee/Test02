@@ -1,29 +1,6 @@
 import { WebSocketServer } from 'ws';
 import { WebSocket } from "ws";
 import { randomBytes } from "crypto";
-import { HttpsProxyAgent } from "https-proxy-agent";
-import * as fs from "fs";
-
-let proxies = fs.readFileSync("p.txt", "utf-8")
-    .split("\r\n")
-    .filter(proxy => proxy.trim() !== "")  // Filter out empty lines
-    .map(proxy => new HttpsProxyAgent(`http://${proxy}`));
-
-
-let proxyCounter = 0;
-
-function selectProxy() {
-    if (proxies.length === 0) {
-        console.error('No proxies available.');
-        return null;
-    }
-
-    const selectedProxy = proxies[proxyCounter];
-
-    proxyCounter = (proxyCounter + 1) % proxies.length; 
-
-    return selectedProxy;
-}
 
 
 function createBot(token, tokenid, recaptcha, RAWHOST, CUTHOST) {
@@ -32,7 +9,6 @@ function createBot(token, tokenid, recaptcha, RAWHOST, CUTHOST) {
 
         const socket = new WebSocket("wss://" + CUTHOST, {
             headers: {
-                agent: selectProxy(),
                 CUTHOST,
                 "connection": "Upgrade",
                 "pragma": "no-cache",
