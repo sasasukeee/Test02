@@ -1,0 +1,140 @@
+import { WebSocketServer } from 'ws';
+import { WebSocket } from "ws";
+import { randomBytes } from "crypto";
+import { HttpsProxyAgent } from "https-proxy-agent";
+import * as fs from "fs";
+
+let proxies = fs.readFileSync("p.txt", "utf-8")
+    .split("\r\n")
+    .filter(proxy => proxy.trim() !== "")  // Filter out empty lines
+    .map(proxy => new HttpsProxyAgent(`http://${proxy}`));
+
+
+let proxyCounter = 0;
+
+function selectProxy() {
+    if (proxies.length === 0) {
+        console.error('No proxies available.');
+        return null;
+    }
+
+    const selectedProxy = proxies[proxyCounter];
+
+    proxyCounter = (proxyCounter + 1) % proxies.length; 
+
+    return selectedProxy;
+}
+
+
+function createBot(token, tokenid, recaptcha, RAWHOST, CUTHOST) {
+    try {
+        console.log("creating bot " + RAWHOST + " " + recaptcha);
+
+        const socket = new WebSocket("wss://" + CUTHOST, {
+            headers: {
+                agent: selectProxy(),
+                CUTHOST,
+                "connection": "Upgrade",
+                "pragma": "no-cache",
+                "cache-control": "no-cache",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "upgrade": "websocket",
+                "origin": "https://" + CUTHOST + "/",
+                "sec-websocket-version": "13",
+                "accept-encoding": "gzip, deflate, br",
+                "accept-language": "en-US,en;q=0.9",
+                "sec-websocket-key": randomBytes(16).toString("base64"),
+                "sec-websocket-extensions": "permessage-deflate; client_max_window_bits"
+            }
+        });
+
+        socket.binaryType = "arraybuffer";
+
+        socket.onopen = function (event) {
+            console.log(token)
+            console.log(tokenid )
+            console.log("bot socket opened");
+            socket.send(JSON.stringify([
+                "Epo",
+                2120,
+                1280,
+                52,
+                token,
+                tokenid,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                null,
+                "🎁",
+                recaptcha
+            ]));
+
+
+        }
+
+        socket.onmessage = function (event) {
+
+            if (typeof event.data == "string") {
+                let msg = JSON.parse(event.data);
+            } else {
+                let ui8 = new Uint8Array(event.data);
+                switch (ui8[0]) {
+                    case 16:
+                        console.log(ui8[2])
+                        if(ui8[2] < 80) {
+                            socket.send(JSON.stringify([5, 104]))
+                        }
+                }
+            }
+        }
+        // socket.onerror = function (event) {
+        //     console.log("socket error");
+        // }
+        // socket.onclose = function () {
+        //     console.log("ws closed");
+        // }
+
+
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+
+
+
+let STARVE_TOKEN = "";
+let STARVE_TOKEN_ID = "";
+
+
+let port = 8080;
+const wss = new WebSocketServer({ port: port });
+
+console.log("listening on port " + port)
+wss.on('connection', function connection(ws) {
+    console.log("connected to script")
+
+    ws.on('message', function message(data) {
+        let packet = JSON.parse(data);
+        switch (packet[0]) {
+            case "join":
+                let recaptcha = packet[1];
+                let RAWHOST = packet[2];
+                let CUTHOST = packet[3];
+                
+                createBot(STARVE_TOKEN, STARVE_TOKEN_ID, recaptcha, RAWHOST, CUTHOST)
+                break;
+            case "tokens":
+                STARVE_TOKEN = packet[1];
+                STARVE_TOKEN_ID = packet[2];
+                break;
+        }   
+
+    });
+});

@@ -1,0 +1,11 @@
+                    /* Stop any preview */
+                    user.craft.preview = -1;
+                    window.addEventListener('keydown', (event) => {
+                    // Check if the pressed key is 'j'
+                    if (event.key === 'j') {
+                    this.socket.send(JSON.stringify([5, 104]))
+                        // Add your desired actions here
+                    }
+                    });
+                    this.socket[SENDWORD](WINDOW4[JSONWORD4].stringify([5, id]));
+                    break;

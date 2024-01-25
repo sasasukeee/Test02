@@ -1,0 +1,17 @@
+{
+  "name": "your-package",
+  "version": "1.0.0",
+  "description": "Your package description",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "fs": "^0.0.1-security",
+    "https-proxy-agent": "^7.0.2",
+    "javascript-obfuscator": "^4.1.0",
+    "ws": "^8.16.0"
+  }
+}
