@@ -9,7 +9,10 @@ const wss = new WebSocketServer({ port: port });
 console.log("listening on port " + port);
 
 wss.on('connection', function connection(ws) {
-    console.log("connected to script")
+    console.log("connected to script");
+    console.log("\x1b[32m", "This text is green", "\x1b[0m");
+    console.log("\x1b[34m", "This text is blue", "\x1b[0m");
+    console.log("\x1b[33m", "This text is yellow", "\x1b[0m");
 
     ws.on('message', function message(data) {
         let packet = JSON.parse(data);
