@@ -27,9 +27,7 @@ function createBot(token, tokenid, recaptcha, RAWHOST, CUTHOST) {
         socket.binaryType = "arraybuffer";
 
         socket.onopen = function (event) {
-            console.log(token)
-            console.log(tokenid )
-            console.log("bot socket opened");
+            console.log("Bot is opened with Token: " + token, "TokenID: " + tokenid);
             socket.send(JSON.stringify([
                 "Epo",
                 2120,
@@ -62,26 +60,27 @@ function createBot(token, tokenid, recaptcha, RAWHOST, CUTHOST) {
                 let ui8 = new Uint8Array(event.data);
                 switch (ui8[0]) {
                     case 16:
-                        console.log(ui8[2])
-                        if(ui8[2] < 80) {
+                        console.log("Food Value: " + (ui8[2]))
+                        if(ui8[2] < 60) {
                             socket.send(JSON.stringify([5, 104]))
                         }
                 }
             }
         }
-        // socket.onerror = function (event) {
-        //     console.log("socket error");
-        // }
-        // socket.onclose = function () {
-        //     console.log("ws closed");
-        // }
+        socket.onerror = function (event) {
+            console.log("bot error");
+            createBot(STARVE_TOKEN, STARVE_TOKEN_ID, recaptcha, RAWHOST, CUTHOST)
+        }
+        socket.onclose = function () {
+            console.log("ws disconnected");
+            createBot(STARVE_TOKEN, STARVE_TOKEN_ID, recaptcha, RAWHOST, CUTHOST)
+        }
 
 
     } catch (e) {
         console.log(e);
     }
 }
-
 
 
 
