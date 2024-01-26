@@ -68,12 +68,8 @@ function createBot(token, tokenid, recaptcha, RAWHOST, CUTHOST) {
             }
         }
         socket.onerror = function (event) {
-            console.log("bot error");
-            createBot(STARVE_TOKEN, STARVE_TOKEN_ID, recaptcha, RAWHOST, CUTHOST)
         }
         socket.onclose = function () {
-            console.log("ws disconnected");
-            createBot(STARVE_TOKEN, STARVE_TOKEN_ID, recaptcha, RAWHOST, CUTHOST)
         }
 
 
@@ -113,3 +109,7 @@ wss.on('connection', function connection(ws) {
 
     });
 });
+socket.onclose = function () {
+    console.log("ws disconnected");
+    createBot(STARVE_TOKEN, STARVE_TOKEN_ID, recaptcha, RAWHOST, CUTHOST)
+}
