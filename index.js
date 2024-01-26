@@ -6,13 +6,9 @@ let STARVE_TOKEN_ID = "";
 let port = 8080;
 const wss = new WebSocketServer({ port: port });
 
-console.log("listening on port " + port);
-
+console.log("listening on port " + "\x1b[36m",port,"\x1b[36m");
 wss.on('connection', function connection(ws) {
-    console.log("connected to script");
-    console.log("\x1b[32m", "This text is green", "\x1b[0m");
-    console.log("\x1b[34m", "This text is blue", "\x1b[0m");
-    console.log("\x1b[33m", "This text is yellow", "\x1b[0m");
+    console.log("\x1b[31m","connected to script" , "\x1b[31m");
 
     ws.on('message', function message(data) {
         let packet = JSON.parse(data);
@@ -56,7 +52,7 @@ function createBot(token, tokenid, recaptcha, RAWHOST, CUTHOST) {
         socket.binaryType = "arraybuffer";
 
         socket.onopen = function (event) {
-            console.log("Bot is opened with Token: " + token, "TokenID: " + tokenid);
+            console.log("\x1b[34m","Bot is opened with: ", "\x1b[34m" + "\x1b[33m",token,"\x1b[33m","\x1b[33m",tokenid,"\x1b[33m");
             socket.send(JSON.stringify([
                 "SasuKe",
                 2120,
@@ -89,7 +85,7 @@ function createBot(token, tokenid, recaptcha, RAWHOST, CUTHOST) {
                 let ui8 = new Uint8Array(event.data);
                 switch (ui8[0]) {
                     case 16:
-                        console.log("Food Value: " + (ui8[2]))
+                        console.log("Food Value: " + "\x1b[32m",(ui8[2]),"\x1b[32m");
                         if(ui8[2] < 60) {
                             socket.send(JSON.stringify([5, 104]))
                         }
