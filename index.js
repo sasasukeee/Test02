@@ -1,37 +1,15 @@
 import { WebSocketServer } from 'ws';
 import { WebSocket } from "ws";
 import { randomBytes } from "crypto";
-let STARVE_TOKEN = "";
-let STARVE_TOKEN_ID = "";
-let port = 8080;
-const wss = new WebSocketServer({ port: port });
 
-console.log("listening on port " + "\x1b[36m",port,"\x1b[36m");
-wss.on('connection', function connection(ws) {
-    console.log("\x1b[31m","connected to script" , "\x1b[31m");
+let socket;
+let killed = false;
+let stoled_token = false;
 
-    ws.on('message', function message(data) {
-        let packet = JSON.parse(data);
-        switch (packet[0]) {
-            case "join":
-                let recaptcha = packet[1];
-                let RAWHOST = packet[2];
-                let CUTHOST = packet[3];
-                createBot(STARVE_TOKEN, STARVE_TOKEN_ID, recaptcha, RAWHOST, CUTHOST);
-                break;
-            case "tokens":
-                STARVE_TOKEN = packet[1];
-                STARVE_TOKEN_ID = packet[2];
-                break;
-        }   
-
-    });
-});
-function createBot(token, tokenid, recaptcha, RAWHOST, CUTHOST) {
+function createSocket(token, tokenid, recaptcha, CUTHOST) {
     try {
-        console.log("creating bot ");
-
-        const socket = new WebSocket("wss://" + CUTHOST, {
+        console.log("created Socket")
+        socket = new WebSocket("wss://" + CUTHOST, {
             headers: {
                 CUTHOST,
                 "connection": "Upgrade",
@@ -47,14 +25,23 @@ function createBot(token, tokenid, recaptcha, RAWHOST, CUTHOST) {
                 "sec-websocket-extensions": "permessage-deflate; client_max_window_bits"
             }
         });
-    
 
         socket.binaryType = "arraybuffer";
 
+        joinToken(token, tokenid, recaptcha)
+
+    } catch(e) {
+        console.log(e);
+    }
+}
+
+
+function joinToken(token, tokenid, recaptcha) {
+    try {
         socket.onopen = function (event) {
-            console.log("\x1b[34m","Bot is opened with: ", "\x1b[34m" + "\x1b[33m",token,"\x1b[33m","\x1b[33m",tokenid,"\x1b[33m");
+            console.log("\x1b[34m"+"Joined Token: ", "\x1b[34m" + "\x1b[33m",token,"\x1b[33m","\x1b[33m",tokenid,"\x1b[33m");
             socket.send(JSON.stringify([
-                "SasuKe",
+                "Epo",
                 2120,
                 1280,
                 52,
@@ -85,21 +72,68 @@ function createBot(token, tokenid, recaptcha, RAWHOST, CUTHOST) {
                 let ui8 = new Uint8Array(event.data);
                 switch (ui8[0]) {
                     case 16:
-                        console.log("Food Value: " + "\x1b[32m",(ui8[2]),"\x1b[32m");
-                        if(ui8[2] < 60) {
+                        console.log("Heal:","\x1b[32m",((ui8[1]) * 2),"\x1b[32m"+ "-", "Food:","\x1b[32m",(ui8[2]),"\x1b[32m"+ "-","Warm:", "\x1b[32m",((ui8[3]) * 2),"\x1b[32m" +"-", "Water:", "\x1b[32m",(ui8[4]),"\x1b[32m" )
+                        if(ui8[2] < 80) {
                             socket.send(JSON.stringify([5, 104]))
                         }
+                        break;
+                    case 25:
+                        // killed
+                        killed = true
+
+                        break;
+                    case 30:
+                        // stoled token
+                        stoled_token = true;
+                        break;
                 }
             }
         }
-        socket.onerror = function (event) {
-            console.log("webscoket error")
-        }
+        // socket.onerror = function (event) {
+        //     console.log("socket error");
+        // }
+        
         socket.onclose = function () {
-            console.log("websocket is disconnected.");
+            console.log("socket closed")
+            if(!killed && !stoled_token)
+                joinToken(token, tokenid, recaptcha)
         }
+
 
     } catch (e) {
         console.log(e);
     }
 }
+
+
+
+
+let STARVE_TOKEN = "";
+let STARVE_TOKEN_ID = "";
+
+
+let port = 8080;
+const wss = new WebSocketServer({ port: port });
+
+console.log("listening on port " + "\x1b[36m",port,"\x1b[36m");
+wss.on('connection', function connection(ws) {
+    console.log("\x1b[31m"+"Connected to script" , "\x1b[31m");
+
+    ws.on('message', function message(data) {
+        let packet = JSON.parse(data);
+        switch (packet[0]) {
+            case "join":
+                let recaptcha = packet[1];
+                let RAWHOST = packet[2];
+                let CUTHOST = packet[3];
+                createSocket(STARVE_TOKEN, STARVE_TOKEN_ID, recaptcha, CUTHOST)
+                // createBot(STARVE_TOKEN, STARVE_TOKEN_ID, recaptcha, RAWHOST, CUTHOST)
+                break;
+            case "tokens":
+                STARVE_TOKEN = packet[1];
+                STARVE_TOKEN_ID = packet[2];
+                break;
+        }   
+
+    });
+});
