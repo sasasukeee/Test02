@@ -105,6 +105,7 @@
                 console.log("socket closed")
                 if(!killed && !stoled_token)
                     joinToken(token, tokenid, recaptcha)
+                id--;
             }
 
 
