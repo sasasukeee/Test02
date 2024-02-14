@@ -5,7 +5,7 @@
     let socket;
     let killed = false;
     let stoled_token = false;
-
+    let id = 1;
     function createSocket(token, tokenid, recaptcha, CUTHOST, serverobject1) {
         try {
             console.log("created Socket")
@@ -38,8 +38,9 @@
 
     function joinToken(token, tokenid, recaptcha, serverobject1) {
         try {
+            id++;
             socket.onopen = function (event) {
-                console.log(`Joined Token:
+                console.log(`Joined Token: >${id}< ${serverobject1.gm} ${serverobject1.a}
             Token:   ${token}
             TokenId: ${tokenid}
             Mode:    ${serverobject1.gm}
@@ -65,8 +66,6 @@
                     "🎁",
                     recaptcha
                 ]));
-
-
             }
 
             socket.onmessage = function (event) {
@@ -77,7 +76,7 @@
                     let ui8 = new Uint8Array(event.data);
                     switch (ui8[0]) {
                         case 16:
-                            console.log(`Token Info
+                            console.log(`Token Info >${id}< ${serverobject1.gm} ${serverobject1.a}
             Heal:  ${(ui8[1] * 2)}
             Food:  ${(ui8[2])}
             Warm:  ${(ui8[3] * 2)}
@@ -119,8 +118,7 @@
 
     let STARVE_TOKEN = "";
     let STARVE_TOKEN_ID = "";
-    let SERVER_OBJECT;
-
+    let SERVER_OBJECT = {};
     let port = 8080;
     const wss = new WebSocketServer({ port: port });
 
