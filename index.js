@@ -5,7 +5,6 @@
     let socket;
     let killed = false;
     let stoled_token = false;
-    let id = 1;
     function createSocket(token, tokenid, recaptcha, CUTHOST, serverobject1) {
         try {
             console.log("created Socket")
@@ -37,6 +36,7 @@
 
 
     function joinToken(token, tokenid, recaptcha, serverobject1) {
+        let id = 0;
         try {
             id++;
             socket.onopen = function (event) {
