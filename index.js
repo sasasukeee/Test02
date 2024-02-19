@@ -5,7 +5,7 @@
     let socket;
     let killed = false;
     let stoled_token = false;
-    function createSocket(token, tokenid, recaptcha, CUTHOST, serverobject1) {
+    function createSocket(token, tokenid, recaptcha, CUTHOST, serverobject1,craft,recycle) {
         try {
             console.log("created Socket")
             socket = new WebSocket("wss://" + CUTHOST, {
@@ -27,15 +27,18 @@
 
             socket.binaryType = "arraybuffer";
 
-            joinToken(token, tokenid, recaptcha,serverobject1)
+            joinToken(token, tokenid, recaptcha,serverobject1,craft,recycle)
 
         } catch(e) {
             console.log(e);
         }
     }
-
-
-    function joinToken(token, tokenid, recaptcha, serverobject1) {
+    function joinToken(token, tokenid, recaptcha, serverobject1,craft,recycle) {
+        if (serverobject1.a === undefined && serverobject1.gm === undefined && serverobject1.nu === undefined){
+            serverobject1.a = "Auto Select";
+            serverobject1.gm = "Auto Select";
+            serverobject1.nu = "Auto Select";
+        }
         let id = 0;
         try {
             id++;
@@ -69,7 +72,6 @@
             }
 
             socket.onmessage = function (event) {
-
                 if (typeof event.data == "string") {
                     let msg = JSON.parse(event.data);
                 } else {
@@ -82,7 +84,29 @@
             Warm:  ${(ui8[3] * 2)}
             Water: ${(ui8[4])}`)
                             if(ui8[2] < 80) {
-                                socket.send(JSON.stringify([5, 104]))
+                                socket.send(JSON.stringify([5, 104])) // eat berry
+                            }
+                            else if(ui8[2] < 60){
+                                socket.send(JSON.stringify([5, 111])) // eat cooked meat
+                            }
+                            socket.send(JSON.stringify([0, `Working ✔️ SasuHolder Food: ${ui8[2]}`]))
+                            if((ui8[1] * 2) < 202) { // Auto Craft
+                                if(craft[0] !== undefined && craft[0] != "None"){
+                                    if(craft[1] !== undefined || craft[2] !== undefined){
+                                        console.log("Item Crafted!");
+                                        console.log(craft[1])
+                                        socket.send(JSON.stringify([craft[1], craft[2]]))
+                                    }
+                                }
+                            }
+                            // it will craft if no ressources recycle
+                            if((ui8[1] * 2) < 202) { // Auto Recycle
+                                if(recycle[0] !== undefined && recycle[0] != "None"){
+                                    if(recycle[1] !== undefined || recycle[2] !== undefined){
+                                        console.log("Item Recycled!");
+                                        socket.send(JSON.stringify([recycle[1], recycle[2]]))   
+                                    }
+                                }
                             }
                             break;
                         case 25:
@@ -116,10 +140,11 @@
 
 
 
-
     let STARVE_TOKEN = "";
     let STARVE_TOKEN_ID = "";
     let SERVER_OBJECT = {};
+    let craft = [];
+    let recycle = [];
     let port = 8080;
     const wss = new WebSocketServer({ port: port });
 
@@ -134,13 +159,15 @@
                     let recaptcha = packet[1];
                     let RAWHOST = packet[2];
                     let CUTHOST = packet[3];
-                    createSocket(STARVE_TOKEN, STARVE_TOKEN_ID, recaptcha, CUTHOST, SERVER_OBJECT);
+                    createSocket(STARVE_TOKEN, STARVE_TOKEN_ID, recaptcha, CUTHOST, SERVER_OBJECT,craft,recycle);
                     // createBot(STARVE_TOKEN, STARVE_TOKEN_ID, recaptcha, RAWHOST, CUTHOST)
                     break;
                 case "tokens":
                     STARVE_TOKEN = packet[1];
                     STARVE_TOKEN_ID = packet[2];
                     SERVER_OBJECT = packet[3];
+                    craft = packet[4];
+                    recycle = packet[5];
                     break;
             }   
 
